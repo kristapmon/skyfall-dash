@@ -1,4 +1,4 @@
-*.md
 docs/
 .DS_Store
 .claude/
+blog-post.md
