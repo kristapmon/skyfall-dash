@@ -1,0 +1,4 @@
+*.md
+docs/
+.DS_Store
+.claude/
