@@ -643,14 +643,31 @@ function drawLaser(o){
 // ===== COIN DRAWING =====
 function drawCoin(c){
   if(c.clearing!==undefined) X.globalAlpha=Math.max(0,c.clearing/30);
-  const bob=Math.sin(c.animTimer)*2;const cy=c.y+bob;const sparkle=Math.sin(c.animTimer*3)>.5;
-  X.fillStyle='#d09800';X.fillRect(c.x,cy,10,10);
-  X.fillStyle='#ffe050';X.fillRect(c.x+1,cy+1,8,8);
-  X.fillStyle='#fff8a0';X.fillRect(c.x+2,cy+2,3,3);
-  X.fillStyle='#d0a020';X.fillRect(c.x+4,cy+3,2,4);
-  if(sparkle){X.fillStyle='#ffffff';X.fillRect(c.x+2,cy+1,1,1);X.fillRect(c.x+7,cy+7,1,1);}
+  const r=7,cx=c.x+r,bob=Math.sin(c.animTimer)*2,cy=c.y+r+bob;
+  const spin=Math.cos(c.animTimer*2);const sw=Math.abs(spin);const front=spin>0;
+  const sparkle=Math.sin(c.animTimer*3)>.5;
+  X.save();X.translate(cx,cy);X.scale(sw||0.15,1);
+  if(sw<0.15){
+    // Edge-on: thin gold disc
+    X.beginPath();X.arc(0,0,r,0,Math.PI*2);X.fillStyle='#b08000';X.fill();
+    X.beginPath();X.arc(0,0,r-1,0,Math.PI*2);X.fillStyle='#d0a020';X.fill();
+  }else if(front){
+    // Front face
+    X.beginPath();X.arc(0,0,r,0,Math.PI*2);X.fillStyle='#d09800';X.fill();
+    X.beginPath();X.arc(0,0,r-1,0,Math.PI*2);X.fillStyle='#ffe050';X.fill();
+    X.beginPath();X.arc(-1,-1,r*0.45,0,Math.PI*2);X.fillStyle='#fff8a0';X.fill();
+    X.beginPath();X.arc(1,1,r*0.3,0,Math.PI*2);X.fillStyle='#d0a020';X.fill();
+    if(sparkle){X.fillStyle='#ffffff';X.fillRect(-3,-r+2,2,2);X.fillRect(r-4,r-4,2,2);}
+  }else{
+    // Back face: darker bronze
+    X.beginPath();X.arc(0,0,r,0,Math.PI*2);X.fillStyle='#a07800';X.fill();
+    X.beginPath();X.arc(0,0,r-1,0,Math.PI*2);X.fillStyle='#c09020';X.fill();
+    X.beginPath();X.arc(1,0,r*0.35,0,Math.PI*2);X.fillStyle='#a08018';X.fill();
+  }
+  X.restore();
+  // Shadow
   const baseAlpha=c.clearing!==undefined?Math.max(0,c.clearing/30):1;
-  X.globalAlpha=baseAlpha*0.2;X.fillStyle='#000';X.fillRect(c.x+1,cy+10,8,1);X.globalAlpha=1;
+  X.globalAlpha=baseAlpha*0.2;X.beginPath();X.ellipse(cx,cy+r+1,Math.max(1,r*sw),1,0,0,Math.PI*2);X.fillStyle='#000';X.fill();X.globalAlpha=1;
 }
 
 // ===== POWER-UP SYSTEM =====
@@ -1103,16 +1120,17 @@ function spawnObs(){if(bossActive||checkpointSafeZone>0)return;
     sfxLaser();}
 }
 
-function spawnCoin(){coins.push({x:gameBW+10,y:CEIL_Y+30+Math.random()*(FLOOR_Y-CEIL_Y-60),w:10,h:10,col:false,animTimer:Math.random()*Math.PI*2});}
-function spawnCoinAt(x,y){coins.push({x,y:Math.max(CEIL_Y+10,Math.min(FLOOR_Y-20,y)),w:10,h:10,col:false,animTimer:Math.random()*Math.PI*2});}
+function spawnCoin(){coins.push({x:gameBW+10,y:CEIL_Y+30+Math.random()*(FLOOR_Y-CEIL_Y-60),w:14,h:14,col:false,animTimer:Math.random()*Math.PI*2});}
+function spawnCoinAt(x,y){coins.push({x,y:Math.max(CEIL_Y+10,Math.min(FLOOR_Y-24,y)),w:14,h:14,col:false,animTimer:Math.random()*Math.PI*2});}
 function spawnCoinPattern(){
-  const pat=Math.floor(Math.random()*5);
+  const pat=Math.floor(Math.random()*6);
   const baseY=CEIL_Y+40+Math.random()*(FLOOR_Y-CEIL_Y-80);
-  if(pat===0){const n=5+Math.floor(Math.random()*4);for(let i=0;i<n;i++)spawnCoinAt(gameBW+10+i*18,baseY);}
-  else if(pat===1){const n=6+Math.floor(Math.random()*4);for(let i=0;i<n;i++)spawnCoinAt(gameBW+10+i*16,baseY+Math.sin(i*.8)*30);}
-  else if(pat===2){const dir=Math.random()>.5?-1:1;for(let i=0;i<6;i++)spawnCoinAt(gameBW+10+i*18,baseY+i*dir*12);}
-  else if(pat===3){spawnCoinAt(gameBW+28,baseY);spawnCoinAt(gameBW+16,baseY-12);spawnCoinAt(gameBW+16,baseY+12);spawnCoinAt(gameBW+4,baseY);spawnCoinAt(gameBW+40,baseY);spawnCoinAt(gameBW+28,baseY-12);spawnCoinAt(gameBW+28,baseY+12);}
-  else{for(let i=0;i<5;i++){spawnCoinAt(gameBW+10+i*18,baseY-10);spawnCoinAt(gameBW+10+i*18,baseY+10);}}
+  if(pat===0){const n=5+Math.floor(Math.random()*4);for(let i=0;i<n;i++)spawnCoinAt(gameBW+10+i*22,baseY);}
+  else if(pat===1){const n=6+Math.floor(Math.random()*4);for(let i=0;i<n;i++)spawnCoinAt(gameBW+10+i*20,baseY+Math.sin(i*.8)*30);}
+  else if(pat===2){const dir=Math.random()>.5?-1:1;for(let i=0;i<6;i++)spawnCoinAt(gameBW+10+i*22,baseY+i*dir*12);}
+  else if(pat===3){spawnCoinAt(gameBW+28,baseY);spawnCoinAt(gameBW+16,baseY-14);spawnCoinAt(gameBW+16,baseY+14);spawnCoinAt(gameBW+4,baseY);spawnCoinAt(gameBW+44,baseY);spawnCoinAt(gameBW+28,baseY-14);spawnCoinAt(gameBW+28,baseY+14);}
+  else if(pat===4){for(let i=0;i<5;i++){spawnCoinAt(gameBW+10+i*22,baseY-12);spawnCoinAt(gameBW+10+i*22,baseY+12);}}
+  else{for(let i=0;i<7;i++){const a=Math.PI*(i/6);spawnCoinAt(gameBW+10+i*20,baseY-Math.sin(a)*35);}}
 }
 
 function reset(){
@@ -1217,7 +1235,7 @@ function update(){
     powerUpSpawnT++;
     if(powerUpSpawnT>=400+Math.random()*200){powerUpSpawnT=0;spawnPowerUp();}
     spawnT++;if(spawnT>=Math.max(spawnI-(speed-baseSpeed)*8,minSI)){spawnT=0;spawnObs();}
-    coinST++;if(coinST>=25+Math.random()*20){coinST=0;if(Math.random()<.5)spawnCoinPattern();else{spawnCoin();if(Math.random()<.4)spawnCoin();}}
+    coinST++;if(coinST>=18+Math.random()*15){coinST=0;if(Math.random()<.6)spawnCoinPattern();else{spawnCoin();if(Math.random()<.55)spawnCoin();}}
   }
   if(coinChainTimer>0)coinChainTimer--;else coinChainCount=0;
   player.vy+=GRAV*gravityDir;player.y+=player.vy;player.flipCD=Math.max(0,player.flipCD-1);
@@ -1245,7 +1263,7 @@ function update(){
 
   // Coin movement with magnet
   const magnetRange=activePowerUp==='magnet'?100:40;
-  coins.forEach(c=>{c.x-=effectiveSpeed;c.animTimer+=.1;
+  coins.forEach(c=>{c.x-=effectiveSpeed;c.animTimer+=.12;
     if(!c.col){const dx=player.x+7-c.x,dy=player.y+8-c.y,dist=Math.sqrt(dx*dx+dy*dy);
       if(dist<magnetRange&&dist>0.5){const pull=Math.max(0,(magnetRange-dist)/magnetRange)*(activePowerUp==='magnet'?3:1.5);c.x+=dx/dist*pull;c.y+=dy/dist*pull;}}
   });coins=coins.filter(c=>c.x>-20&&!c.col);
@@ -1284,7 +1302,7 @@ function update(){
     const scoreMul2=activePowerUp==='double'?2:1;
     score+=10*comboMul*scoreMul2;
     sessionCoins++;gameStats.totalCoins++;
-    emitP(c.x+5,c.y+5,10,'#ffe050',4);
+    emitP(c.x+7,c.y+7,10,'#ffe050',4);
     coinChainCount=Math.min(coinChainCount+1,15);coinChainTimer=20;
     sfxCoinPickup();
     addCombo();}}
